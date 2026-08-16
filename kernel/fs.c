@@ -367,6 +367,17 @@ iput(struct inode *ip)
 
     releasesleep(&ip->lock);
 
+#ifdef LEAK_WINDOW
+    // TEST ONLY (build with -DLEAK_WINDOW): widen the window between the
+    // on-disk free above and the ip->ref-- below.  The freed inum is now
+    // allocatable (type==0) while this slot still holds ref>0, so a
+    // concurrent ialloc()+iget() adopts the slot and the no-crash inode
+    // leak becomes deterministic.  See user/inodeleak.c.  Compiles to
+    // nothing in a normal (verified) build.
+    for (volatile long _d = 0; _d < 20000000L; _d++)
+      ;
+#endif
+
     acquire(&itable.lock);
   }
 
