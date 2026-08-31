@@ -2,8 +2,6 @@
 
 **Ubuntu 24.04 LTS · WSL2 · macOS**
 
-*이번 주 안에 여기까지 마쳐 오세요*
-
 > 설정을 마친 뒤에는 [utils.md](utils.md) 에서 git · 소스 읽기 · gdb 를 참고하세요.
 
 ## 목차
