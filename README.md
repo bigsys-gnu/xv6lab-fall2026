@@ -104,3 +104,8 @@ xv6 는 Dennis Ritchie 와 Ken Thompson 의 Unix Version 6 (1975) 를 RISC-V 로
 
 이 저장소(repository)를 **fork 해서 사용하세요.** 실습 결과를 내 GitHub 에 그대로 올릴 수 있습니다.
 이 저장소가 갱신되면 GitHub 웹의 **Sync fork** 버튼으로 받아 옵니다 — [utils.md](docs/utils.md) 참고.
+
+## 문의처
+
+- 소프트웨어공학과 김재호 교수: jaeho.kim@gnu.ac.kr
+- AI융합공학과 최문석 조교: 
