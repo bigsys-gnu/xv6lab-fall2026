@@ -10,3 +10,10 @@ _*
 /user/usys.S
 .gdbinit
 TAGS
+
+# 소스 탐색 도구 산출물
+tags
+cscope.*
+compile_commands.json
+.vscode/
+.cache/
