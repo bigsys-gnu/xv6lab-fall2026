@@ -34,7 +34,7 @@
 
 ## 1. git 사용법 (Using git)
 
-*명령을 외우지 마세요. 이 장을 옆에 두고 필요할 때 찾아 쓰면 됩니다.*
+*명령을 외우지 않아도 됩니다. 필요할 때 찾아 보고 익숙해지면 외워집니다.*
 
 ### 1.1 add · commit · push 의 차이
 
@@ -43,8 +43,6 @@
 | `git add` | 이번에 저장할 파일을 고른다 | 아직 저장 안 됨 (대기 상태) |
 | `git commit` | 고른 것을 하나의 기록으로 저장한다 | 내 컴퓨터 |
 | `git push` | 그 기록을 인터넷의 저장소로 복사한다 | GitHub 등 (선택) |
-
-> ℹ️ **push 는 선택 사항** push 를 하지 않아도 실습에는 아무 지장이 없습니다. 커밋은 이미 내 컴퓨터에 남아 있고, 되돌리기도 전부 로컬에서 됩니다. push 는 노트북이 고장 났을 때를 대비한 백업일 뿐입니다.
 
 ### 1.2 브랜치 생성과 이동 (Branching)
 
@@ -56,11 +54,11 @@ git branch
 
 # 메모리 관리 실습을 시작할 때
 git checkout riscv          # 원본 브랜치로 이동
-git checkout -b memory      # memory 브랜치를 새로 생성하고 그리로 이동
+git checkout -b memory      # (브랜치명 예시)memory 브랜치를 새로 생성하고 그리로 이동
 
 # 다음 주제로 넘어갈 때
 git checkout riscv          # 손대지 않은 원본으로 복귀
-git checkout -b process     # process 브랜치를 새로 생성
+git checkout -b process     # (브랜치명 예시)process 브랜치를 새로 생성
 
 # 예전에 만들어 둔 브랜치로 돌아가기 (-b 를 붙이지 않는다)
 git checkout memory
@@ -85,7 +83,7 @@ $ git status
 # ② 어떻게 바뀌었나 — 실제 변경 내용
 $ git diff kernel/kalloc.c        # 이 파일만
 $ git diff                        # 고친 것 전부
-$ git diff riscv...               # 분기 지점 이후 내가 고친 것 전부
+$ git diff riscv...               # 브랜치 분기 이후 내가 고친 것 전부
 
 # ③ 빌드가 통과하는지 확인
 $ make qemu
