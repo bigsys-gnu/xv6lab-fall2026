@@ -21,15 +21,14 @@
   - [2.2 도구 선택](#22-도구-선택)
   - [2.3 GUI 에디터 — VS Code](#23-gui-에디터-vs-code)
   - [2.4 터미널 도구 — ctags 와 cscope](#24-터미널-도구-ctags-와-cscope)
-  - [2.5 검색 — grep](#25-검색-grep)
-  - [2.6 빌드 산출물 — kernel.asm 과 kernel.sym](#26-빌드-산출물-kernelasm-과-kernelsym)
-  - [2.7 읽기 요령](#27-읽기-요령)
+  - [2.5 읽기 요령](#25-읽기-요령)
 - [3. gdb 디버깅 (Kernel Debugging)](#3-gdb-디버깅-kernel-debugging)
-  - [3.1 초기 설정](#31-초기-설정)
-  - [3.2 기본 사용법](#32-기본-사용법)
-  - [3.3 주요 명령 (gdb Commands)](#33-주요-명령-gdb-commands)
-  - [3.4 상황별 사용법](#34-상황별-사용법)
-  - [3.5 화면 분할 — layout src](#35-화면-분할-layout-src)
+  - [3.1 gdb 를 켜기 전에 — kernel.asm](#31-gdb-를-켜기-전에-kernelasm)
+  - [3.2 초기 설정](#32-초기-설정)
+  - [3.3 기본 사용법](#33-기본-사용법)
+  - [3.4 주요 명령 (gdb Commands)](#34-주요-명령-gdb-commands)
+  - [3.5 상황별 사용법](#35-상황별-사용법)
+  - [3.6 화면 분할 — layout src](#36-화면-분할-layout-src)
 - [부록 B — 명령 요약](#부록-b-명령-요약)
 
 ## 1. git 사용법 (Using git)
@@ -269,7 +268,7 @@ grep -n "kalloc" kernel/defs.h
 | 한계 | SSH 전용 환경에서는 별도 설정이 필요하다 | 처음 설정과 색인 갱신을 손으로 해야 한다 |
 | 현장에서는 | 응용 개발에서 널리 쓰인다 | 리눅스 커널 개발에서 여전히 표준적인 조합이다 |
 
-> ℹ️ **두 방식의 공통 도구** 어느 쪽을 고르든 kernel/defs.h 를 목차로, grep 을 보조로 씁니다. 앞의 5.1 과 뒤의 검색 절은 두 방식 모두에 해당합니다.
+> ℹ️ **두 방식의 공통 도구** 어느 쪽을 고르든 `kernel/defs.h` 를 목차로 씁니다. 2.1 은 두 방식 모두에 해당합니다.
 
 ### 2.3 GUI 에디터 — VS Code
 
@@ -298,39 +297,7 @@ bear -- make            # compile_commands.json 이 생긴다
 
 ### 2.4 터미널 도구 — ctags 와 cscope
 
-vim 을 쓰거나 터미널만으로 작업한다면 이 둘 중 하나면 됩니다. 리눅스 커널 개발 현장에서 여전히 널리 쓰이는 조합입니다.
-
-#### ctags — 정의로 이동
-
-```
-sudo apt install universal-ctags
-cd ~/xv6-riscv
-ctags -R kernel user           # tags 파일이 생긴다
-
-# vim 안에서
-#   Ctrl-]   커서 아래 이름의 정의로 이동
-#   Ctrl-t   되돌아오기
-#   :tag kalloc   이름으로 바로 이동
-```
-
-#### cscope — 호출 지점 추적
-
-```
-sudo apt install cscope
-cd ~/xv6-riscv
-cscope -Rbq                    # 색인 생성
-cscope -d                      # 대화형 화면 열기
-```
-
-화면 아래쪽 메뉴에서 원하는 항목에 커서를 두고 이름을 입력하면 됩니다.
-
-| cscope 메뉴 | 무엇을 찾나 |
-|---|---|
-| Find this C symbol | 이 이름이 나오는 곳 전부 |
-| Find this global definition | 정의된 곳 |
-| Find functions called by this function | 이 함수가 부르는 함수들 |
-| Find functions calling this function | 이 함수를 부르는 곳 — 커널 읽기에 가장 유용 |
-| Find files #including this file | 이 헤더를 포함하는 파일들 |
+vim 을 쓰거나 터미널만으로 작업한다면 이 둘이면 충분합니다. 리눅스 커널 개발 현장에서 여전히 널리 쓰이는 조합입니다.
 
 |   | ctags | cscope |
 |---|---|---|
@@ -338,49 +305,77 @@ cscope -d                      # 대화형 화면 열기
 | 설정 | 간단 | 조금 더 필요 |
 | 커널 읽기에는 | 충분할 때가 많다 | “누가 이걸 부르나”를 알 수 있어 더 유용 |
 
-> ⚠️ **색인 갱신** ctags -R kernel user 또는 cscope -Rbq 를 다시 실행합니다. 색인이 낡으면 엉뚱한 줄로 점프합니다.
-
-Makefile 에 `make tags` 도 있습니다. Emacs 용 TAGS 파일을 만듭니다.
-
-### 2.5 검색 — grep
-
-매크로, 구조체 필드, 문자열 상수는 정의 이동보다 검색이 빠릅니다.
+#### 색인 만들기
 
 ```
-# 이 이름이 어디에 나오나
-grep -rn "kalloc" kernel/
+sudo apt install universal-ctags cscope
+cd ~/xv6
 
-# 몇 군데에서 쓰나
-grep -rn "PTE_U" kernel/ | wc -l
+# ctags — 빌드 산출물인 kernel.asm 은 제외한다
+ctags -R --exclude='*.asm' kernel user
 
-# 파일 이름만
-grep -rl "spinlock" kernel/
-
-# 더 빠른 검색기 (선택)
-sudo apt install ripgrep
-rg -n "kalloc" kernel/
+# cscope — 어셈블리(.S) 까지 포함하도록 파일 목록을 직접 만든다
+find kernel user -name '*.c' -o -name '*.h' -o -name '*.S' > cscope.files
+cscope -bq -k
 ```
 
-### 2.6 빌드 산출물 — kernel.asm 과 kernel.sym
+> ⚠️ **옵션 두 개가 중요합니다** `--exclude='*.asm'` 을 빼면 빌드 후 생기는 `kernel/kernel.asm` 이 색인에 섞여 `swtch` 같은 이름이 두 곳으로 잡힙니다. cscope 는 기본적으로 `.c .h` 만 색인하므로, 파일 목록을 직접 만들지 않으면 `swtch.S` · `trampoline.S` · `entry.S` 를 찾지 못합니다. `-k` 는 `/usr/include` 를 뒤지지 않는다는 뜻입니다.
 
-make 를 돌릴 때마다 자동으로 생기는 파일 두 개가 디버깅에 아주 유용합니다.
+> ⚠️ **색인 갱신** 코드를 고친 뒤에는 위 명령을 다시 실행하세요. 색인이 낡으면 엉뚱한 줄로 점프합니다.
 
-| 파일 | 무엇인가 | 언제 쓰나 |
+#### vim 설정
+
+`~/.vimrc` 에 아래를 넣습니다.
+
+```
+" 태그 파일을 상위 디렉터리까지 거슬러 찾는다
+set tags=./tags,tags;
+
+" cscope 연결
+if has("cscope")
+  set cscopetag          " Ctrl-] 이 cscope 결과도 함께 쓴다
+  set csto=0             " cscope 를 ctags 보다 먼저
+  if filereadable("cscope.out")
+    cs add cscope.out
+  endif
+endif
+
+" 커서 아래 이름으로 바로 검색
+nnoremap <C-\>c :cs find c <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-\>g :cs find g <C-R>=expand("<cword>")<CR><CR>
+nnoremap <C-\>s :cs find s <C-R>=expand("<cword>")<CR><CR>
+```
+
+> ℹ️ **세미콜론에 주의** `set tags=./tags,tags;` 의 마지막 `;` 가 있어야 `kernel/` 안에서 파일을 열어도 상위의 `tags` 를 찾아냅니다.
+
+#### vim 에서 쓰는 법
+
+ctags — 이 넷이면 대부분 해결됩니다.
+
+| 키 | 하는 일 |
+|---|---|
+| `Ctrl-]` | 커서 아래 이름의 정의로 이동 |
+| `Ctrl-t` | 되돌아오기 (여러 번 누르면 계속 뒤로) |
+| `Ctrl-w ]` | 창을 나눠서 정의를 연다 — 원래 코드를 보며 확인할 때 |
+| `:tag kalloc` | 이름을 직접 입력해 이동 |
+
+cscope — 커서를 이름 위에 두고 누릅니다.
+
+| 키 | 명령 | 무엇을 찾나 |
 |---|---|---|
-| `kernel/kernel.asm` | 커널 전체의 역어셈블. C 소스와 어셈블리가 나란히 섞여 있다 | panic 이나 usertrap 이 찍은 주소가 어느 함수의 어느 줄인지 찾을 때 |
-| `kernel/kernel.sym` | 심볼 이름과 주소만 모은 표 | “이 주소가 대체 뭐지?” 싶을 때 가장 가까운 심볼 찾기 |
+| `Ctrl-\` `c` | `:cs find c` | 이 함수를 **부르는 곳** — 커널 읽기에 가장 유용 |
+| `Ctrl-\` `g` | `:cs find g` | 정의된 곳 |
+| `Ctrl-\` `s` | `:cs find s` | 이 이름이 나오는 곳 전부 |
+
+문자열을 찾을 때는 직접 칩니다. panic 메시지에서 코드를 역추적할 때 씁니다.
 
 ```
-# 예: usertrap 이 sepc=0x0000000080001f2a 를 찍었다
-grep -n "80001f2a" kernel/kernel.asm
-
-# 예: 이 주소 근처의 심볼 찾기
-sort kernel/kernel.sym | less
+:cs find t remap
 ```
 
-> ℹ️ **제출물 제외** .gitignore 에 등록되어 있어 git 이 무시합니다. make clean 으로 지워집니다.
+> ℹ️ **직접 해 보기** 커서를 `kalloc` 위에 두고 `Ctrl-\` `c` 를 눌러 보세요. 열네 군데가 나옵니다 — 「메모리 관리」 강의에서 확인하는 그 숫자입니다.
 
-### 2.7 읽기 요령
+### 2.5 읽기 요령
 
 - 전부 이해하려 하지 마세요. 강의에서 다루는 파일만 열어도 충분합니다.
 - 함수 하나를 볼 때 “누가 이걸 부르나”를 먼저 확인하면 맥락이 잡힙니다.
@@ -393,7 +388,24 @@ sort kernel/kernel.sym | less
 
 *학기 중반부터 씁니다. 지금은 설정만 해 두고, 필요해질 때 이 장으로 돌아오세요.*
 
-### 3.1 초기 설정
+### 3.1 gdb 를 켜기 전에 — kernel.asm
+
+커널이 죽으면서 주소를 찍었다면, gdb 를 띄우기 전에 먼저 해 볼 것이 있습니다.
+
+`make` 는 빌드할 때마다 `kernel/kernel.asm` 을 만듭니다. 커널 전체를 역어셈블한 것인데, **C 소스와 어셈블리가 나란히 섞여** 있습니다. 여기서 주소를 검색하면 어느 함수의 어느 줄인지 바로 나옵니다.
+
+```
+# usertrap 이 sepc=0x0000000080001f2a 를 찍었다면
+grep -n "80001f2a:" kernel/kernel.asm
+```
+
+찾은 줄에서 위로 조금 올라가면 `0000000080001f10 <usertrap>:` 처럼 함수 이름이 나오고, 그 사이에 해당 C 코드가 주석처럼 끼어 있습니다.
+
+> ℹ️ **gdb 보다 빠를 때가 많습니다** 터미널 두 개를 띄우고 중단점을 걸 필요 없이, 이미 있는 파일을 검색하기만 하면 됩니다. “어디서 죽었나”만 알면 되는 상황에서는 이쪽이 낫습니다.
+
+> ℹ️ **제출물에는 들어가지 않습니다** `.gitignore` 에 등록되어 있어 git 이 무시합니다. `make clean` 으로 지워집니다.
+
+### 3.2 초기 설정
 
 터미널 두 개가 필요합니다. 하나는 QEMU 를, 다른 하나는 gdb 를 띄웁니다.
 
@@ -433,7 +445,7 @@ echo "add-auto-load-safe-path $HOME/xv6-riscv/.gdbinit" >> ~/.config/gdb/gdbinit
 
 > ⚠️ **경로 확인** 위 명령은 xv6-riscv 를 홈 디렉터리에 받았을 때를 가정합니다. 다른 곳에 받았다면 gdb 가 출력한 메시지의 경로를 그대로 복사해 쓰세요.
 
-### 3.2 기본 사용법
+### 3.3 기본 사용법
 
 gdb 가 붙으면 커널이 첫 명령어 직전에 멈춰 있습니다. 여기서 중단점을 걸고 `c` 로 실행을 시작합니다.
 
@@ -448,7 +460,7 @@ Breakpoint 1, main () at kernel/main.c:12
 $1 = 0
 ```
 
-### 3.3 주요 명령 (gdb Commands)
+### 3.4 주요 명령 (gdb Commands)
 
 | 명령 | 줄임 | 무엇을 하나 |
 |---|---|---|
@@ -469,7 +481,7 @@ $1 = 0
 
 > ℹ️ **엔터로 직전 명령 반복** n 을 한 번 친 뒤에는 엔터만 눌러도 계속 한 줄씩 진행합니다. 단계 실행할 때 편합니다.
 
-### 3.4 상황별 사용법
+### 3.5 상황별 사용법
 
 #### 상황 1 — 시스템콜 호출 확인
 
@@ -514,7 +526,7 @@ $1 = 0x8000a3c8 "acquire"
 (gdb) bt                  # 어디서 왔는지 거슬러 올라간다
 ```
 
-> ℹ️ **gdb 없이 확인하기** panic 이나 usertrap 이 sepc=0x... 를 찍었다면, kernel/kernel.asm 에서 그 주소를 검색해 보세요. 어느 함수의 어느 줄인지 바로 나옵니다. gdb 를 띄우는 것보다 빠를 때가 많습니다.
+> ℹ️ **gdb 없이 확인하기** 주소만 알면 되는 상황이라면 3.1 의 kernel.asm 검색이 더 빠릅니다.
 
 #### 상황 4 — 값 변경 시점 감시 (watch)
 
@@ -541,7 +553,7 @@ New value = (struct run *) 0x87f4e000
 
 > ⚠️ **주의** file 명령은 심볼을 통째로 바꿉니다. 커널 쪽으로 돌아가려면 file kernel/kernel 로 다시 읽혀야 합니다.
 
-### 3.5 화면 분할 — layout src
+### 3.6 화면 분할 — layout src
 
 `layout src` 를 치면 위쪽에 소스, 아래쪽에 명령창이 나옵니다. 지금 어느 줄에 있는지 눈으로 보면서 진행할 수 있습니다.
 
