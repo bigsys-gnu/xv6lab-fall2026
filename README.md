@@ -110,4 +110,4 @@ xv6 는 Dennis Ritchie 와 Ken Thompson 의 Unix Version 6 (1975) 를 RISC-V 로
 ## 문의처
 
 - 소프트웨어공학과 김재호 교수: jaeho.kim@gnu.ac.kr
-- AI융합공학과 최문석 조교: 
+- AI융합공학과 최문석 조교: mon08290@naver.com
